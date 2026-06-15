@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import InfoCard from "../components/common/InfoCard";
 import DetailRow from "../components/common/DetailRow";
 import {
@@ -42,15 +42,60 @@ import {
   FileSpreadsheet,
   Eye,
   ShieldCheck,
+  X,
 } from "lucide-react";
 import mapView from "../assets/map-view.png";
 import officeBuilding from "../assets/office-building.jpg";
 
 const Dashboard = () => {
   const [zoom, setZoom] = useState(1);
+  const [lightbox, setLightbox] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState(attachments);
+  const fileInputRef = useRef(null);
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.5, 5));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.5, 1));
+
+  const getFileType = (fileName) => {
+    const ext = fileName.split(".").pop().toLowerCase();
+    if (ext === "pdf") return "pdf";
+    if (["doc", "docx"].includes(ext)) return "docx";
+    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return "jpg";
+    return "other";
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  };
+
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const newFiles = files.map((file) => ({
+      name: file.name,
+      size: formatFileSize(file.size),
+      type: getFileType(file.name),
+      file,
+    }));
+    setUploadedFiles((prev) => [...prev, ...newFiles]);
+    e.target.value = "";
+  };
+
+  const handleDeleteFile = (index) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDownloadFile = (file) => {
+    if (file.file) {
+      const url = URL.createObjectURL(file.file);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.name;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
 
   return (
     <div className="p-4 md:p-6">
@@ -256,7 +301,8 @@ const Dashboard = () => {
               <img
                 src={officeBuilding}
                 alt="Office Building"
-                className="w-full object-contain"
+                className="w-full object-contain cursor-pointer"
+                onClick={() => setLightbox(true)}
                 style={{
                   transform: `scale(${zoom})`,
                   transition: "transform 0.3s ease",
@@ -457,13 +503,25 @@ const Dashboard = () => {
           headerColor="bg-cyan-700"
         >
           <div className="p-4">
-            <button className="flex items-center gap-2 border border-blue-500 text-blue-600 rounded-lg px-3 py-1.5 text-sm font-medium mb-4">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              multiple
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,.xlsx,.csv,.txt"
+              className="hidden"
+            />
+
+            <button
+              onClick={() => fileInputRef.current.click()}
+              className="flex items-center gap-2 border border-blue-500 text-blue-600 rounded-lg px-3 py-1.5 text-sm font-medium mb-4 hover:bg-blue-50 transition"
+            >
               <Upload size={14} />
               Upload Files
             </button>
 
             <div className="space-y-2">
-              {attachments.map((file, index) => (
+              {uploadedFiles.map((file, index) => (
                 <div
                   key={index}
                   className="flex items-center justify-between py-2"
@@ -481,22 +539,33 @@ const Dashboard = () => {
                       <p className="text-sm font-medium text-gray-700">
                         {file.name}
                       </p>
-
                       <p className="text-xs text-gray-500">{file.size}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button className="p-1 hover:bg-blue-100 rounded transition">
+                    <button
+                      onClick={() => handleDownloadFile(file)}
+                      className="p-1 hover:bg-blue-100 rounded transition"
+                    >
                       <Download size={16} className="text-blue-600" />
                     </button>
 
-                    <button className="p-1 hover:bg-red-100 rounded transition">
+                    <button
+                      onClick={() => handleDeleteFile(index)}
+                      className="p-1 hover:bg-red-100 rounded transition"
+                    >
                       <Trash2 size={16} className="text-red-500" />
                     </button>
                   </div>
                 </div>
               ))}
+
+              {uploadedFiles.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-3">
+                  No files uploaded yet
+                </p>
+              )}
             </div>
           </div>
         </InfoCard>
@@ -767,6 +836,27 @@ const Dashboard = () => {
           </div>
         </InfoCard>
       </div>
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setLightbox(false)}
+        >
+          <button
+            onClick={() => setLightbox(false)}
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition"
+          >
+            <X size={24} />
+          </button>
+
+          <img
+            src={officeBuilding}
+            alt="Visit Photo"
+            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 };
