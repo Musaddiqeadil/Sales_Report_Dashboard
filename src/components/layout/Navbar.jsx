@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   PlusCircle,
@@ -14,31 +15,37 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", color: "text-blue-600" },
-  { icon: PlusCircle, label: "Add Visit", color: "text-green-600" },
-  { icon: FileText, label: "Report List", color: "text-blue-500" },
-  { icon: Users, label: "Clients", color: "text-gray-800" },
-  { icon: Briefcase, label: "Projects", color: "text-red-500" },
-  { icon: Package, label: "Products", color: "text-purple-600" },
-  { icon: CreditCard, label: "Payments", color: "text-violet-600" },
-  { icon: UserRound, label: "Team", color: "text-slate-800" },
-  { icon: BarChart3, label: "Analytics", color: "text-amber-500" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/", color: "text-blue-600" },
+  { icon: PlusCircle, label: "Add Visit", path: "/add-visit", color: "text-green-600" },
+  { icon: FileText, label: "Report List", path: "/reports", color: "text-blue-500" },
+  { icon: Users, label: "Clients", path: "/clients", color: "text-gray-800" },
+  { icon: Briefcase, label: "Projects", path: "/projects", color: "text-red-500" },
+  { icon: Package, label: "Products", path: "/products", color: "text-purple-600" },
+  { icon: CreditCard, label: "Payments", path: "/payments", color: "text-violet-600" },
+  { icon: UserRound, label: "Team", path: "/team", color: "text-slate-800" },
+  { icon: BarChart3, label: "Analytics", path: "/analytics", color: "text-amber-500" },
 ];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
 
   return (
     <nav className="bg-white border-b shadow-sm">
       <div className="hidden md:flex flex-wrap items-center justify-center gap-10 px-6 py-4">
-        {navItems.map(({ icon: Icon, label, color }) => (
-          <button
+        {navItems.map(({ icon: Icon, label, path, color }) => (
+          <Link
             key={label}
-            className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition"
+            to={path}
+            className={`flex items-center gap-2 transition ${
+              location.pathname === path
+                ? "text-blue-600"
+                : "text-gray-700 hover:text-blue-600"
+            }`}
           >
-            <Icon size={20} className={color} />
+            <Icon size={20} className={location.pathname === path ? "text-blue-600" : color} />
             <span className="font-semibold">{label}</span>
-          </button>
+          </Link>
         ))}
       </div>
 
@@ -75,15 +82,20 @@ const Navbar = () => {
         </div>
 
         <div className="flex flex-col py-2">
-          {navItems.map(({ icon: Icon, label, color }) => (
-            <button
+          {navItems.map(({ icon: Icon, label, path, color }) => (
+            <Link
               key={label}
+              to={path}
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-5 py-3 text-gray-700 hover:bg-gray-50 transition"
+              className={`flex items-center gap-3 px-5 py-3 transition ${
+                location.pathname === path
+                  ? "text-blue-600 bg-blue-50"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
             >
-              <Icon size={20} className={color} />
+              <Icon size={20} className={location.pathname === path ? "text-blue-600" : color} />
               <span className="font-semibold">{label}</span>
-            </button>
+            </Link>
           ))}
         </div>
       </div>
