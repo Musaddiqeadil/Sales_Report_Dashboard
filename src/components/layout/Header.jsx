@@ -16,7 +16,7 @@ const Header = () => {
           <img
             src={profileImg}
             alt="Profile"
-            className="w-9 h-9 md:w-12 md:h-12 rounded-full object-cover border-2 border-white"
+            className="w-9 h-9 md:w-12 md:h-12 rounded-full object-cover border-2 border-red-200"
           />
 
           <div className="hidden sm:block">

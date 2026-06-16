@@ -1,7 +1,7 @@
 const InfoCard = ({
   title,
   icon: Icon,
-  headerColor = "bg-blue-600",
+  headerColor = "bg-red-600",
   children,
 }) => {
   return (

@@ -14,11 +14,56 @@ import {
   FileText,
   Image,
   Trash2,
+  CheckCircle,
 } from "lucide-react";
+
+const emptyProduct = { name: "", quantity: "", unit: "Nos", demandType: "New" };
+
+const getInitialForm = () => ({
+  date: "",
+  time: "",
+  salesExecutive: "",
+  territory: "",
+  location: "",
+  purpose: "",
+  clientName: "",
+  contactPerson: "",
+  contactNumber: "",
+  email: "",
+  projectType: "",
+  whatToBuild: "",
+  paymentType: "Bank Transfer",
+  totalAmount: "",
+  advanceAmount: "",
+  notes: "",
+});
 
 const AddVisit = () => {
   const fileInputRef = useRef(null);
   const [files, setFiles] = useState([]);
+  const [form, setForm] = useState(getInitialForm);
+  const [products, setProducts] = useState([{ ...emptyProduct }, { ...emptyProduct }]);
+  const [success, setSuccess] = useState(false);
+
+  const pendingAmount = Math.max(0, (Number(form.totalAmount) || 0) - (Number(form.advanceAmount) || 0));
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleProductChange = (index, field, value) => {
+    setProducts((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+  };
+
+  const addProduct = () => {
+    setProducts((prev) => [...prev, { ...emptyProduct }]);
+  };
+
+  const removeProduct = (index) => {
+    if (products.length <= 1) return;
+    setProducts((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const getFileType = (name) => {
     const ext = name.split(".").pop().toLowerCase();
@@ -46,11 +91,35 @@ const AddVisit = () => {
   const removeFile = (index) => {
     setFiles(files.filter((_, i) => i !== index));
   };
+
+  const resetForm = () => {
+    setForm(getInitialForm());
+    setProducts([{ ...emptyProduct }, { ...emptyProduct }]);
+    setFiles([]);
+    setSuccess(false);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSuccess(true);
+    setTimeout(() => {
+      resetForm();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 2000);
+  };
+
   return (
     <div className="p-4 md:p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-5">Add New Visit</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-5">Add New Visit</h2>
 
-      <form>
+      {success && (
+        <div className="flex items-center gap-3 bg-green-50 border border-green-300 rounded-lg px-4 py-3 mb-5">
+          <CheckCircle size={20} className="text-green-600 shrink-0" />
+          <p className="text-sm font-medium text-green-700">Visit submitted successfully! Form will reset shortly.</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit}>
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm mb-5">
           <div className="bg-blue-900 flex items-center gap-2 px-4 py-2.5 text-white font-semibold text-sm">
             <Calendar size={16} />
@@ -58,33 +127,33 @@ const AddVisit = () => {
           </div>
           <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Date</label>
-              <input type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Date <span className="text-red-500">*</span></label>
+              <input type="date" name="date" value={form.date} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Time</label>
-              <input type="time" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Time <span className="text-red-500">*</span></label>
+              <input type="time" name="time" value={form.time} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Sales Executive</label>
-              <input type="text" placeholder="Enter name" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Sales Executive <span className="text-red-500">*</span></label>
+              <input type="text" name="salesExecutive" value={form.salesExecutive} onChange={handleChange} required placeholder="Enter name" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Territory</label>
-              <input type="text" placeholder="Enter territory" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="text" name="territory" value={form.territory} onChange={handleChange} placeholder="Enter territory" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Location</label>
               <div className="flex gap-2">
-                <input type="text" placeholder="Enter location" className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <button type="button" className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                <input type="text" name="location" value={form.location} onChange={handleChange} placeholder="Enter location" className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+                <button type="button" className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
                   <MapPin size={16} />
                 </button>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Purpose of Visit</label>
-              <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Purpose of Visit <span className="text-red-500">*</span></label>
+              <select name="purpose" value={form.purpose} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
                 <option value="">Select purpose</option>
                 <option>Product Demand</option>
                 <option>Project Discussion</option>
@@ -104,24 +173,24 @@ const AddVisit = () => {
           </div>
           <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Client Name</label>
-              <input type="text" placeholder="Enter client name" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Client Name <span className="text-red-500">*</span></label>
+              <input type="text" name="clientName" value={form.clientName} onChange={handleChange} required placeholder="Enter client name" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Contact Person</label>
-              <input type="text" placeholder="Enter contact person" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="text" name="contactPerson" value={form.contactPerson} onChange={handleChange} placeholder="Enter contact person" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Contact Number</label>
-              <input type="tel" placeholder="+91 98765 43210" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Contact Number <span className="text-red-500">*</span></label>
+              <input type="tel" name="contactNumber" value={form.contactNumber} onChange={handleChange} required placeholder="+91 98765 43210" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-              <input type="email" placeholder="Enter email" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="Enter email" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Project Type</label>
-              <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Project Type <span className="text-red-500">*</span></label>
+              <select name="projectType" value={form.projectType} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
                 <option value="">Select type</option>
                 <option>Residential</option>
                 <option>Commercial Building</option>
@@ -132,7 +201,7 @@ const AddVisit = () => {
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">What to Build</label>
-              <input type="text" placeholder="e.g. Office Complex (G+5 Building)" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="text" name="whatToBuild" value={form.whatToBuild} onChange={handleChange} placeholder="e.g. Office Complex (G+5 Building)" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
           </div>
         </div>
@@ -155,68 +224,41 @@ const AddVisit = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="bg-white">
-                    <td className="py-1.5 px-2 border border-gray-300">
-                      <input type="text" placeholder="Enter product" className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                    </td>
-                    <td className="py-1.5 px-2 border border-gray-300">
-                      <input type="number" placeholder="0" className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                    </td>
-                    <td className="py-1.5 px-2 border border-gray-300">
-                      <select className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        <option>Nos</option>
-                        <option>Kg</option>
-                        <option>Litre</option>
-                        <option>Meter</option>
-                        <option>Set</option>
-                      </select>
-                    </td>
-                    <td className="py-1.5 px-2 border border-gray-300">
-                      <select className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        <option>New</option>
-                        <option>Replacement</option>
-                        <option>Additional</option>
-                      </select>
-                    </td>
-                    <td className="py-1.5 px-2 border border-gray-300 text-center">
-                      <button type="button" className="p-1 text-red-500 hover:bg-red-50 rounded transition">
-                        <Minus size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                  <tr className="bg-white">
-                    <td className="py-1.5 px-2 border border-gray-300">
-                      <input type="text" placeholder="Enter product" className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                    </td>
-                    <td className="py-1.5 px-2 border border-gray-300">
-                      <input type="number" placeholder="0" className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                    </td>
-                    <td className="py-1.5 px-2 border border-gray-300">
-                      <select className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        <option>Nos</option>
-                        <option>Kg</option>
-                        <option>Litre</option>
-                        <option>Meter</option>
-                        <option>Set</option>
-                      </select>
-                    </td>
-                    <td className="py-1.5 px-2 border border-gray-300">
-                      <select className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        <option>New</option>
-                        <option>Replacement</option>
-                        <option>Additional</option>
-                      </select>
-                    </td>
-                    <td className="py-1.5 px-2 border border-gray-300 text-center">
-                      <button type="button" className="p-1 text-red-500 hover:bg-red-50 rounded transition">
-                        <Minus size={16} />
-                      </button>
-                    </td>
-                  </tr>
+                  {products.map((product, index) => (
+                    <tr key={index} className="bg-white">
+                      <td className="py-1.5 px-2 border border-gray-300">
+                        <input type="text" value={product.name} onChange={(e) => handleProductChange(index, "name", e.target.value)} placeholder="Enter product" className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500" />
+                      </td>
+                      <td className="py-1.5 px-2 border border-gray-300">
+                        <input type="number" value={product.quantity} onChange={(e) => handleProductChange(index, "quantity", e.target.value)} placeholder="0" className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-1 focus:ring-red-500" />
+                      </td>
+                      <td className="py-1.5 px-2 border border-gray-300">
+                        <select value={product.unit} onChange={(e) => handleProductChange(index, "unit", e.target.value)} className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500">
+                          <option>Nos</option>
+                          <option>Kg</option>
+                          <option>Litre</option>
+                          <option>Meter</option>
+                          <option>Set</option>
+                        </select>
+                      </td>
+                      <td className="py-1.5 px-2 border border-gray-300">
+                        <select value={product.demandType} onChange={(e) => handleProductChange(index, "demandType", e.target.value)} className="w-full border border-gray-200 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500">
+                          <option>New</option>
+                          <option>Replacement</option>
+                          <option>Additional</option>
+                        </select>
+                      </td>
+                      <td className="py-1.5 px-2 border border-gray-300 text-center">
+                        <button type="button" onClick={() => removeProduct(index)} className={`p-1 rounded transition ${products.length <= 1 ? "text-gray-300 cursor-not-allowed" : "text-red-500 hover:bg-red-50"}`} disabled={products.length <= 1}>
+                          <Minus size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-            <button type="button" className="flex items-center gap-2 mt-3 text-sm font-medium text-blue-600 hover:text-blue-700 transition">
+            <button type="button" onClick={addProduct} className="flex items-center gap-2 mt-3 text-sm font-medium text-red-600 hover:text-red-700 transition">
               <Plus size={16} />
               Add Product
             </button>
@@ -232,7 +274,7 @@ const AddVisit = () => {
             <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Payment Type</label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select name="paymentType" value={form.paymentType} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
                   <option>Bank Transfer</option>
                   <option>Cash</option>
                   <option>Cheque</option>
@@ -242,15 +284,15 @@ const AddVisit = () => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Total Amount (₹)</label>
-                <input type="number" placeholder="0" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="number" name="totalAmount" value={form.totalAmount} onChange={handleChange} placeholder="0" min="0" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Advance Amount (₹)</label>
-                <input type="number" placeholder="0" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="number" name="advanceAmount" value={form.advanceAmount} onChange={handleChange} placeholder="0" min="0" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Pending Amount (₹)</label>
-                <input type="text" readOnly value="0" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-600" />
+                <input type="text" readOnly value={pendingAmount.toLocaleString("en-IN")} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-600" />
               </div>
             </div>
           </div>
@@ -261,7 +303,7 @@ const AddVisit = () => {
               <h3>Visit Notes / Discussion</h3>
             </div>
             <div className="p-4">
-              <textarea rows={5} placeholder="Write your visit notes, discussion points, observations..." className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+              <textarea name="notes" value={form.notes} onChange={handleChange} rows={5} placeholder="Write your visit notes, discussion points, observations..." className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none" />
             </div>
           </div>
         </div>
@@ -283,7 +325,7 @@ const AddVisit = () => {
 
             <div
               onClick={() => fileInputRef.current.click()}
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition"
+              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-red-400 hover:bg-red-50/50 transition"
             >
               <Upload size={28} className="mx-auto text-gray-400 mb-2" />
               <p className="text-sm font-medium text-gray-600">Click to upload or drag and drop</p>
@@ -322,11 +364,11 @@ const AddVisit = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-end">
-          <button type="button" className="flex items-center justify-center gap-2 px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+          <button type="button" onClick={resetForm} className="flex items-center justify-center gap-2 px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
             <RotateCcw size={16} />
             Reset Form
           </button>
-          <button type="submit" className="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+          <button type="submit" className="flex items-center justify-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition">
             <Save size={16} />
             Submit Visit
           </button>

@@ -140,7 +140,7 @@ const Dashboard = () => {
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h4 className="font-semibold text-gray-800">GPS Location</h4>
+                <h4 className="font-semibold text-gray-900">GPS Location</h4>
 
                 <p className="text-sm text-gray-600">26.8467° N, 80.9462° E</p>
               </div>
@@ -514,7 +514,7 @@ const Dashboard = () => {
 
             <button
               onClick={() => fileInputRef.current.click()}
-              className="flex items-center gap-2 border border-blue-500 text-blue-600 rounded-lg px-3 py-1.5 text-sm font-medium mb-4 hover:bg-blue-50 transition"
+              className="flex items-center gap-2 border border-red-500 text-red-600 rounded-lg px-3 py-1.5 text-sm font-medium mb-4 hover:bg-red-50 transition"
             >
               <Upload size={14} />
               Upload Files
@@ -546,9 +546,9 @@ const Dashboard = () => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleDownloadFile(file)}
-                      className="p-1 hover:bg-blue-100 rounded transition"
+                      className="p-1 hover:bg-red-100 rounded transition"
                     >
-                      <Download size={16} className="text-blue-600" />
+                      <Download size={16} className="text-red-600" />
                     </button>
 
                     <button
@@ -627,7 +627,7 @@ const Dashboard = () => {
                 <input
                   type="date"
                   defaultValue="2025-05-01"
-                  className="border border-gray-300 rounded px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="border border-gray-300 rounded px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
                 />
               </div>
 
@@ -639,7 +639,7 @@ const Dashboard = () => {
                 <input
                   type="date"
                   defaultValue="2025-05-20"
-                  className="border border-gray-300 rounded px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="border border-gray-300 rounded px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
                 />
               </div>
 
@@ -648,7 +648,7 @@ const Dashboard = () => {
                   Sales Executive
                 </label>
 
-                <select className="border border-gray-300 rounded px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+                <select className="border border-gray-300 rounded px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500">
                   <option>All Employees</option>
                   <option>Rahul Kumar</option>
                   <option>Priya Singh</option>
@@ -656,7 +656,7 @@ const Dashboard = () => {
                 </select>
               </div>
 
-              <button className="flex items-center gap-1.5 bg-blue-600 text-white rounded px-3 py-1.5 text-sm font-medium hover:bg-blue-700 transition">
+              <button className="flex items-center gap-1.5 bg-red-600 text-white rounded px-3 py-1.5 text-sm font-medium hover:bg-red-700 transition">
                 <Search size={14} />
                 Search
               </button>
@@ -803,19 +803,19 @@ const Dashboard = () => {
                       <td className="py-2.5 px-3 text-center border border-gray-300">
                         <MapPin
                           size={16}
-                          className="text-blue-600 mx-auto"
+                          className="text-red-600 mx-auto"
                         />
                       </td>
 
                       <td className="py-2.5 px-3 text-center border border-gray-300">
                         <Camera
                           size={16}
-                          className="text-blue-600 mx-auto"
+                          className="text-red-600 mx-auto"
                         />
                       </td>
 
                       <td className="py-2.5 px-3 text-center border border-gray-300">
-                        <button className="text-blue-600 border border-blue-600 rounded px-2.5 py-0.5 text-xs font-medium">
+                        <button className="text-red-600 border border-red-600 rounded px-2.5 py-0.5 text-xs font-medium">
                           View
                         </button>
                       </td>

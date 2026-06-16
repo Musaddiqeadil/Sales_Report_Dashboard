@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -12,59 +13,156 @@ import {
   PieChart,
   ArrowUpRight,
   ArrowDownRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
-const summaryCards = [
-  { title: "Total Visits", value: "156", change: "+12%", trend: "up", icon: MapPin, color: "bg-blue-100", iconColor: "text-blue-600" },
-  { title: "Total Revenue", value: "₹21,50,000", change: "+8%", trend: "up", icon: IndianRupee, color: "bg-green-100", iconColor: "text-green-600" },
-  { title: "Active Clients", value: "24", change: "+3", trend: "up", icon: Users, color: "bg-purple-100", iconColor: "text-purple-600" },
-  { title: "Projects", value: "18", change: "-2", trend: "down", icon: Briefcase, color: "bg-orange-100", iconColor: "text-orange-600" },
-];
+const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const topExecutives = [
-  { rank: 1, name: "Amit Verma", visits: 42, revenue: "5,20,000", conversion: "78%" },
-  { rank: 2, name: "Priya Singh", visits: 38, revenue: "4,80,000", conversion: "72%" },
-  { rank: 3, name: "Rahul Kumar", visits: 35, revenue: "4,10,000", conversion: "68%" },
-  { rank: 4, name: "Neha Srivastava", visits: 28, revenue: "3,50,000", conversion: "65%" },
-  { rank: 5, name: "Ankit Yadav", visits: 13, revenue: "1,90,000", conversion: "58%" },
-];
+const executives = ["Amit Verma", "Priya Singh", "Rahul Kumar", "Neha Srivastava", "Ankit Yadav"];
+const clients = ["ABC INFOTECH PVT. LTD.", "XYZ SOLUTIONS", "TECHNO HUB", "SHARMA INFRA DEVELOPERS", "GREENFIELD CONSTRUCTIONS", "BLUESTAR TECHNOLOGIES", "NEXGEN TECHNOLOGIES", "METRO BUILDERS", "PINNACLE SOLUTIONS", "URBAN DEVELOPERS", "SKYLINE INFRA", "ROYAL CONSTRUCTIONS", "DIGITAL WAVES", "SUNTECH ENERGY", "PRIMESOFT LABS", "VERTEX BUILDERS", "QUANTUM SYSTEMS", "HORIZON INFRA"];
+const projectNames = ["CRM Software", "E-Commerce Portal", "Business Management System", "Inventory Management", "Corporate Website", "Office Complex (G+5)", "ERP System", "Mobile App Development", "Data Analytics Platform", "Cloud Migration", "Security Audit System", "HR Management Portal", "Supply Chain Tool", "IoT Dashboard", "AI Chatbot Integration", "Billing System", "Warehouse Management", "Client Portal"];
+const actions = ["Visit completed", "Payment received", "New lead added", "Project completed", "Visit scheduled", "Project started", "Contract signed", "Follow-up done"];
+const timings = ["1 hour ago", "2 hours ago", "3 hours ago", "4 hours ago", "5 hours ago", "6 hours ago", "1 day ago", "2 days ago", "3 days ago"];
 
-const monthlyData = [
-  { month: "Jan", visits: 120, revenue: "15,00,000" },
-  { month: "Feb", visits: 135, revenue: "16,50,000" },
-  { month: "Mar", visits: 142, revenue: "18,20,000" },
-  { month: "Apr", visits: 128, revenue: "17,00,000" },
-  { month: "May", visits: 156, revenue: "21,50,000" },
-];
+const seed = (key) => {
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = ((h << 5) - h + key.charCodeAt(i)) | 0;
+  return Math.abs(h);
+};
 
-const projectStatus = [
-  { status: "In Progress", count: 8, percentage: "44%", color: "bg-blue-500" },
-  { status: "Completed", count: 5, percentage: "28%", color: "bg-green-500" },
-  { status: "Planning", count: 3, percentage: "17%", color: "bg-yellow-500" },
-  { status: "On Hold", count: 2, percentage: "11%", color: "bg-red-500" },
-];
+const pick = (arr, s) => arr[s % arr.length];
 
-const recentActivity = [
-  { id: 1, action: "Visit completed", detail: "Amit Verma visited ABC INFOTECH PVT. LTD.", time: "2 hours ago" },
-  { id: 2, action: "Payment received", detail: "₹3,00,000 from XYZ SOLUTIONS (CRM Software)", time: "5 hours ago" },
-  { id: 3, action: "New lead added", detail: "Priya Singh added NEXGEN TECHNOLOGIES", time: "1 day ago" },
-  { id: 4, action: "Project completed", detail: "E-Commerce Portal for TECHNO HUB", time: "2 days ago" },
-  { id: 5, action: "Visit scheduled", detail: "Rahul Kumar → SHARMA INFRA DEVELOPERS", time: "3 days ago" },
-];
+const formatINR = (num) => num.toLocaleString("en-IN");
+
+const generateMonthData = (key) => {
+  const [y, m] = key.split("-").map(Number);
+  const monthIndex = (y - 2025) * 12 + (m - 1);
+  const s = seed(key);
+
+  const baseVisits = 110 + Math.round(Math.sin(monthIndex * 0.5) * 20) + (monthIndex * 3);
+  const visits = baseVisits + (s % 15);
+  const baseRevenue = 1400000 + (monthIndex * 80000) + ((s % 5) * 50000);
+  const revenue = Math.round(baseRevenue / 10000) * 10000;
+  const activeClients = 17 + Math.floor(monthIndex * 0.5) + (s % 3);
+  const totalProjects = 13 + Math.floor(monthIndex * 0.4) + (s % 3);
+
+  const prevVisits = 110 + Math.round(Math.sin((monthIndex - 1) * 0.5) * 20) + ((monthIndex - 1) * 3) + (seed(key + "p") % 15);
+  const prevRevenue = 1400000 + ((monthIndex - 1) * 80000) + ((seed(key + "p") % 5) * 50000);
+  const visitChange = prevVisits > 0 ? Math.round(((visits - prevVisits) / prevVisits) * 100) : 0;
+  const revenueChange = prevRevenue > 0 ? Math.round(((revenue - Math.round(prevRevenue / 10000) * 10000) / (Math.round(prevRevenue / 10000) * 10000)) * 100) : 0;
+
+  const summary = [
+    { title: "Total Visits", value: String(visits), change: `${visitChange >= 0 ? "+" : ""}${visitChange}%`, trend: visitChange >= 0 ? "up" : "down", icon: MapPin, color: "bg-red-100", iconColor: "text-red-600" },
+    { title: "Total Revenue", value: `₹${formatINR(revenue)}`, change: `${revenueChange >= 0 ? "+" : ""}${revenueChange}%`, trend: revenueChange >= 0 ? "up" : "down", icon: IndianRupee, color: "bg-green-100", iconColor: "text-green-600" },
+    { title: "Active Clients", value: String(activeClients), change: `+${1 + (s % 3)}`, trend: "up", icon: Users, color: "bg-purple-100", iconColor: "text-purple-600" },
+    { title: "Projects", value: String(totalProjects), change: monthIndex % 4 === 3 ? "-1" : `+${1 + (s % 2)}`, trend: monthIndex % 4 === 3 ? "down" : "up", icon: Briefcase, color: "bg-orange-100", iconColor: "text-orange-600" },
+  ];
+
+  const execData = executives.map((name, i) => {
+    const base = visits - (i * Math.floor(visits / 8));
+    const v = Math.max(8, Math.floor(base / executives.length) + ((seed(key + name) % 10) - 3));
+    const rev = Math.round((v * (revenue / visits) * (1 + (seed(key + name + "r") % 20 - 10) / 100)) / 10000) * 10000;
+    const conv = Math.max(50, 80 - (i * 4) - (seed(key + name + "c") % 5));
+    return { rank: i + 1, name, visits: v, revenue: formatINR(rev), conversion: `${conv}%` };
+  }).sort((a, b) => b.visits - a.visits).map((e, i) => ({ ...e, rank: i + 1 }));
+
+  const inProgress = 5 + (s % 5);
+  const completed = 3 + (seed(key + "c") % 4);
+  const planning = 2 + (seed(key + "pl") % 3);
+  const onHold = 1 + (seed(key + "h") % 2);
+  const projTotal = inProgress + completed + planning + onHold;
+  const projects = [
+    { status: "In Progress", count: inProgress, percentage: `${Math.round((inProgress / projTotal) * 100)}%`, color: "bg-blue-500" },
+    { status: "Completed", count: completed, percentage: `${Math.round((completed / projTotal) * 100)}%`, color: "bg-green-500" },
+    { status: "Planning", count: planning, percentage: `${Math.round((planning / projTotal) * 100)}%`, color: "bg-yellow-500" },
+    { status: "On Hold", count: onHold, percentage: `${Math.round((onHold / projTotal) * 100)}%`, color: "bg-red-500" },
+  ];
+
+  const activity = Array.from({ length: 5 }, (_, i) => {
+    const as = seed(key + String(i));
+    const action = pick(actions, as);
+    let detail = "";
+    if (action.includes("Visit")) detail = `${pick(executives, as + 1)} visited ${pick(clients, as + 2)}`;
+    else if (action.includes("Payment")) detail = `₹${formatINR((1 + (as % 4)) * 100000)} from ${pick(clients, as + 3)}`;
+    else if (action.includes("lead")) detail = `${pick(executives, as + 4)} added ${pick(clients, as + 5)}`;
+    else if (action.includes("Project")) detail = `${pick(projectNames, as + 6)} for ${pick(clients, as + 7)}`;
+    else if (action.includes("Contract")) detail = `${pick(clients, as + 8)} signed for ${pick(projectNames, as + 9)}`;
+    else detail = `${pick(executives, as + 10)} → ${pick(clients, as + 11)}`;
+    return { id: i + 1, action, detail, time: pick(timings, as + i) };
+  });
+
+  return { label: `${monthNames[m - 1]} ${y}`, summary, executives: execData, projects, activity, visits, revenue };
+};
+
+const generateMonthKeys = () => {
+  const keys = [];
+  for (let y = 2025; y <= 2026; y++) {
+    const endM = y === 2026 ? 6 : 12;
+    for (let m = 1; m <= endM; m++) {
+      keys.push(`${y}-${String(m).padStart(2, "0")}`);
+    }
+  }
+  return keys;
+};
+
+const monthKeys = generateMonthKeys();
 
 const Analytics = () => {
+  const [selectedMonth, setSelectedMonth] = useState("2026-06");
+
+  const allData = useMemo(() => {
+    const map = {};
+    monthKeys.forEach((key) => { map[key] = generateMonthData(key); });
+    return map;
+  }, []);
+
+  const data = allData[selectedMonth];
+  const currentIndex = monthKeys.indexOf(selectedMonth);
+
+  const goToPrev = () => {
+    if (currentIndex > 0) setSelectedMonth(monthKeys[currentIndex - 1]);
+  };
+
+  const goToNext = () => {
+    if (currentIndex < monthKeys.length - 1) setSelectedMonth(monthKeys[currentIndex + 1]);
+  };
+
+  const totalProjects = data.projects.reduce((sum, p) => sum + p.count, 0);
+
+  const selectedYear = selectedMonth.split("-")[0];
+  const yearMonths = monthKeys.filter((k) => k.startsWith(selectedYear));
+  const performanceData = yearMonths.map((key) => {
+    const d = allData[key];
+    const mi = parseInt(key.split("-")[1]) - 1;
+    return { key, month: shortMonths[mi], year: selectedYear, visits: d.visits, revenue: formatINR(d.revenue) };
+  });
+
   return (
     <div className="p-4 md:p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
-        <h2 className="text-xl font-bold text-gray-800">Analytics & Overview</h2>
-        <div className="flex items-center gap-2">
-          <Calendar size={16} className="text-gray-500" />
-          <span className="text-sm text-gray-500 font-medium">May 2025</span>
+        <h2 className="text-xl font-bold text-gray-900">Analytics & Overview</h2>
+        <div className="flex items-center gap-1">
+          <button onClick={goToPrev} disabled={currentIndex === 0} className={`p-1.5 rounded-md transition ${currentIndex === 0 ? "text-gray-300 cursor-not-allowed" : "text-gray-600 hover:bg-gray-100"}`}>
+            <ChevronLeft size={18} />
+          </button>
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-1.5">
+            <Calendar size={16} className="text-red-600" />
+            <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="text-sm font-medium text-gray-700 bg-transparent outline-none cursor-pointer">
+              {monthKeys.map((key) => (
+                <option key={key} value={key}>{allData[key].label}</option>
+              ))}
+            </select>
+          </div>
+          <button onClick={goToNext} disabled={currentIndex === monthKeys.length - 1} className={`p-1.5 rounded-md transition ${currentIndex === monthKeys.length - 1 ? "text-gray-300 cursor-not-allowed" : "text-gray-600 hover:bg-gray-100"}`}>
+            <ChevronRight size={18} />
+          </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {summaryCards.map((card) => (
+        {data.summary.map((card) => (
           <div key={card.title} className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
             <div className="flex items-center justify-between mb-3">
               <div className={`p-2.5 ${card.color} rounded-lg`}>
@@ -75,7 +173,7 @@ const Analytics = () => {
                 {card.change}
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-800">{card.value}</p>
+            <p className="text-2xl font-bold text-gray-900">{card.value}</p>
             <p className="text-xs text-gray-500 mt-1">{card.title}</p>
           </div>
         ))}
@@ -85,7 +183,7 @@ const Analytics = () => {
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200">
             <BarChart3 size={18} className="text-blue-600" />
-            <h3 className="font-semibold text-gray-800">Monthly Performance</h3>
+            <h3 className="font-semibold text-gray-900">Monthly Performance ({selectedYear})</h3>
           </div>
           <div className="p-4">
             <table className="w-full text-sm border-collapse">
@@ -98,13 +196,13 @@ const Analytics = () => {
                 </tr>
               </thead>
               <tbody>
-                {monthlyData.map((item, index) => (
-                  <tr key={item.month} className="bg-white">
-                    <td className="py-2.5 px-3 border border-gray-300 font-medium">{item.month} 2025</td>
+                {performanceData.map((item, index) => (
+                  <tr key={item.key} className={selectedMonth === item.key ? "bg-red-50" : "bg-white"}>
+                    <td className="py-2.5 px-3 border border-gray-300 font-medium">{item.month} {item.year}</td>
                     <td className="py-2.5 px-3 text-center border border-gray-300">{item.visits}</td>
                     <td className="py-2.5 px-3 text-right border border-gray-300">{item.revenue}</td>
                     <td className="py-2.5 px-3 text-center border border-gray-300">
-                      {index > 0 && item.visits > monthlyData[index - 1].visits ? (
+                      {index > 0 && item.visits > performanceData[index - 1].visits ? (
                         <TrendingUp size={16} className="text-green-600 mx-auto" />
                       ) : index > 0 ? (
                         <TrendingDown size={16} className="text-red-500 mx-auto" />
@@ -122,18 +220,18 @@ const Analytics = () => {
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200">
             <PieChart size={18} className="text-purple-600" />
-            <h3 className="font-semibold text-gray-800">Project Status Distribution</h3>
+            <h3 className="font-semibold text-gray-900">Project Status Distribution</h3>
           </div>
           <div className="p-4">
             <div className="space-y-4">
-              {projectStatus.map((item) => (
+              {data.projects.map((item) => (
                 <div key={item.status}>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-sm font-medium text-gray-700">{item.status}</span>
                     <span className="text-sm text-gray-500">{item.count} ({item.percentage})</span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2.5">
-                    <div className={`${item.color} h-2.5 rounded-full`} style={{ width: item.percentage }}></div>
+                    <div className={`${item.color} h-2.5 rounded-full transition-all duration-500`} style={{ width: item.percentage }}></div>
                   </div>
                 </div>
               ))}
@@ -141,7 +239,7 @@ const Analytics = () => {
             <div className="mt-5 pt-4 border-t border-gray-200">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-gray-700">Total Projects</span>
-                <span className="text-lg font-bold text-gray-800">18</span>
+                <span className="text-lg font-bold text-gray-900">{totalProjects}</span>
               </div>
             </div>
           </div>
@@ -152,7 +250,7 @@ const Analytics = () => {
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200">
             <Award size={18} className="text-amber-500" />
-            <h3 className="font-semibold text-gray-800">Top Sales Executives</h3>
+            <h3 className="font-semibold text-gray-900">Top Sales Executives</h3>
           </div>
           <div className="p-4">
             <table className="w-full text-sm border-collapse">
@@ -166,7 +264,7 @@ const Analytics = () => {
                 </tr>
               </thead>
               <tbody>
-                {topExecutives.map((exec) => (
+                {data.executives.map((exec) => (
                   <tr key={exec.rank} className="bg-white">
                     <td className="py-2.5 px-3 text-center border border-gray-300">
                       <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
@@ -200,15 +298,15 @@ const Analytics = () => {
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
           <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200">
             <Target size={18} className="text-green-600" />
-            <h3 className="font-semibold text-gray-800">Recent Activity</h3>
+            <h3 className="font-semibold text-gray-900">Recent Activity</h3>
           </div>
           <div className="p-4">
             <div className="space-y-0">
-              {recentActivity.map((activity, index) => (
-                <div key={activity.id} className={`flex gap-3 py-3 ${index < recentActivity.length - 1 ? "border-b border-gray-100" : ""}`}>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 shrink-0"></div>
+              {data.activity.map((activity, index) => (
+                <div key={activity.id} className={`flex gap-3 py-3 ${index < data.activity.length - 1 ? "border-b border-gray-100" : ""}`}>
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2 shrink-0"></div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-800">{activity.action}</p>
+                    <p className="text-sm font-semibold text-gray-900">{activity.action}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{activity.detail}</p>
                     <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
                   </div>

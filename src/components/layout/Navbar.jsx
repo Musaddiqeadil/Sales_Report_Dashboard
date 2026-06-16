@@ -18,7 +18,7 @@ const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/", color: "text-blue-600" },
   { icon: PlusCircle, label: "Add Visit", path: "/add-visit", color: "text-green-600" },
   { icon: FileText, label: "Report List", path: "/reports", color: "text-blue-500" },
-  { icon: Users, label: "Clients", path: "/clients", color: "text-gray-800" },
+  { icon: Users, label: "Clients", path: "/clients", color: "text-gray-900" },
   { icon: Briefcase, label: "Projects", path: "/projects", color: "text-red-500" },
   { icon: Package, label: "Products", path: "/products", color: "text-purple-600" },
   { icon: CreditCard, label: "Payments", path: "/payments", color: "text-violet-600" },
@@ -39,11 +39,11 @@ const Navbar = () => {
             to={path}
             className={`flex items-center gap-2 transition ${
               location.pathname === path
-                ? "text-blue-600"
-                : "text-gray-700 hover:text-blue-600"
+                ? "text-red-600"
+                : "text-gray-700 hover:text-red-600"
             }`}
           >
-            <Icon size={20} className={location.pathname === path ? "text-blue-600" : color} />
+            <Icon size={20} className={location.pathname === path ? "text-red-600" : color} />
             <span className="font-semibold">{label}</span>
           </Link>
         ))}
@@ -72,7 +72,7 @@ const Navbar = () => {
         }`}
       >
         <div className="flex items-center justify-between px-4 py-4 border-b">
-          <span className="font-bold text-lg text-gray-800">Menu</span>
+          <span className="font-bold text-lg text-gray-900">Menu</span>
           <button
             onClick={() => setIsOpen(false)}
             className="p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
@@ -89,11 +89,11 @@ const Navbar = () => {
               onClick={() => setIsOpen(false)}
               className={`flex items-center gap-3 px-5 py-3 transition ${
                 location.pathname === path
-                  ? "text-blue-600 bg-blue-50"
+                  ? "text-red-600 bg-red-50"
                   : "text-gray-700 hover:bg-gray-50"
               }`}
             >
-              <Icon size={20} className={location.pathname === path ? "text-blue-600" : color} />
+              <Icon size={20} className={location.pathname === path ? "text-red-600" : color} />
               <span className="font-semibold">{label}</span>
             </Link>
           ))}
