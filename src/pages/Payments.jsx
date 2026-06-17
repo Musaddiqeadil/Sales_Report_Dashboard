@@ -158,7 +158,7 @@ const Payments = () => {
                       <div className="flex items-center justify-end gap-1"><IndianRupee size={13} className="text-green-400" />{payment.received}</div>
                     </td>
                     <td className="py-2.5 px-3 text-right border border-gray-200 text-red-600 font-semibold">
-                      <div className="flex items-center justify-end gap-1"><IndianRupee size={13} className="text-red-400" />{payment.pending}</div>
+                      <div className="flex items-center justify-end gap-1"><IndianRupee size={13} className="text-red-500" />{payment.pending}</div>
                     </td>
                     <td className="py-2.5 px-3 border border-gray-200">
                       <div className="flex items-center gap-1.5"><CreditCard size={13} className="text-violet-500" />{payment.mode}</div>
@@ -176,7 +176,7 @@ const Payments = () => {
                 )}
               </tbody>
               <tfoot>
-                <tr className="bg-slate-100 font-bold text-sm">
+                <tr className="bg-gray-50 font-bold text-sm">
                   <td colSpan={4} className="py-2.5 px-3 text-right border border-gray-200">Total</td>
                   <td className="py-2.5 px-3 text-right border border-gray-200">₹{formatAmount(totals.total)}</td>
                   <td className="py-2.5 px-3 text-right border border-gray-200 text-green-600">₹{formatAmount(totals.received)}</td>

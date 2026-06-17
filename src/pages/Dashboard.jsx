@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import InfoCard from "../components/common/InfoCard";
 import DetailRow from "../components/common/DetailRow";
+import Modal from "../components/common/Modal";
 import {
   visitInformation,
   clientInformation,
@@ -52,6 +53,46 @@ const Dashboard = () => {
   const [lightbox, setLightbox] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState(attachments);
   const fileInputRef = useRef(null);
+
+  const [fromDate, setFromDate] = useState("2025-05-01");
+  const [toDate, setToDate] = useState("2025-05-20");
+  const [executiveFilter, setExecutiveFilter] = useState("All Employees");
+  const [viewModal, setViewModal] = useState(null);
+
+  const executives = [...new Set(reportList.map((r) => r.salesExecutive))];
+
+  const parseDate = (str) => {
+    if (!str) return null;
+    const [d, m, y] = str.split("/");
+    return new Date(`${y}-${m}-${d}`);
+  };
+
+  const filteredReports = reportList.filter((r) => {
+    const matchExec = executiveFilter === "All Employees" || r.salesExecutive === executiveFilter;
+    const rDate = parseDate(r.date);
+    const matchFrom = !fromDate || (rDate && rDate >= new Date(fromDate));
+    const matchTo = !toDate || (rDate && rDate <= new Date(toDate));
+    return matchExec && matchFrom && matchTo;
+  });
+
+  const resetFilters = () => {
+    setFromDate("");
+    setToDate("");
+    setExecutiveFilter("All Employees");
+  };
+
+  const exportCSV = () => {
+    const headers = ["#", "Date", "Time", "Sales Executive", "Client Name", "Contact No.", "Project Type", "Products", "Total Value", "Advance", "Pending", "Payment Type", "Status"];
+    const rows = filteredReports.map((r, i) => [i + 1, r.date, r.time, r.salesExecutive, r.clientName, r.contactNo, r.projectType, r.products, r.totalValue, r.advance, r.pending, r.paymentType, r.status]);
+    const csv = [headers, ...rows].map((row) => row.map((v) => `"${v}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "dashboard-report.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.5, 5));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.5, 1));
@@ -141,16 +182,13 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h4 className="font-semibold text-gray-900">GPS Location</h4>
-
                 <p className="text-sm text-gray-600">26.8467° N, 80.9462° E</p>
               </div>
-
               <span className="flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
                 <CheckCircle size={14} />
                 GPS Captured
               </span>
             </div>
-
             <div className="overflow-hidden rounded-lg border border-gray-200">
               <img
                 src={mapView}
@@ -158,7 +196,6 @@ const Dashboard = () => {
                 className="w-full h-48 object-cover"
               />
             </div>
-
             <div className="mt-3">
               <p className="text-sm font-medium text-gray-700">
                 Captured at:
@@ -167,13 +204,11 @@ const Dashboard = () => {
                 </span>
               </p>
             </div>
-
             <div className="grid grid-cols-2 gap-3 mt-4">
               <button className="flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition">
                 <RefreshCw size={16} />
                 Refresh Location
               </button>
-
               <button className="flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2 text-sm font-medium hover:bg-gray-50 transition">
                 <Navigation size={16} />
                 Open in Maps
@@ -193,40 +228,30 @@ const Dashboard = () => {
                 <thead>
                   <tr className="border-b bg-gray-50">
                     <th className="text-left py-2">Product Name</th>
-
                     <th className="text-center py-2">Quantity</th>
-
                     <th className="text-center py-2">Demand Type</th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {productDemands.map((item, index) => (
                     <tr key={index} className="border-b">
                       <td className="py-2">{item.product}</td>
-
                       <td className="text-center">{item.quantity}</td>
-
                       <td className="text-center">{item.demandType}</td>
                     </tr>
                   ))}
-
                   <tr className="font-semibold bg-gray-50">
                     <td className="py-2">Total Products</td>
-
                     <td className="text-center">{productDemands.length}</td>
-
                     <td></td>
                   </tr>
                 </tbody>
               </table>
             </div>
-
             <div className="mt-4">
               <h4 className="font-semibold text-sm mb-2">
                 Products Demand Description
               </h4>
-
               <p className="text-sm text-gray-600 leading-relaxed">
                 {productDemandDescription}
               </p>
@@ -244,44 +269,36 @@ const Dashboard = () => {
               <h4 className="font-semibold text-sm mb-2">
                 What They Want to Build
               </h4>
-
               <div className="border rounded-md p-3 bg-white">
                 Complete Business Management System with Website and Mobile App
               </div>
             </div>
-
             <div>
               <DetailRow label="Project Incharge" value="Vikash Gupta" />
             </div>
-
             <div>
               <DetailRow
                 label="Project Incharge Contact"
                 value="+91 9123456780"
               />
             </div>
-
             <div>
               <h4 className="font-semibold text-sm mb-3">
                 Who is Working on Project
               </h4>
-
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="text-green-600">✓</span>
                   <span>2 Developers</span>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <span className="text-green-600">✓</span>
                   <span>1 UI/UX Designer</span>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <span className="text-green-600">✓</span>
                   <span>1 Tester</span>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <span className="text-green-600">✓</span>
                   <span>1 Project Manager</span>
@@ -308,7 +325,6 @@ const Dashboard = () => {
                   transition: "transform 0.3s ease",
                 }}
               />
-
               <div className="absolute top-3 right-3 flex flex-col z-10">
                 <button
                   className="bg-white p-2 border rounded-t-lg hover:bg-gray-100 transition"
@@ -316,7 +332,6 @@ const Dashboard = () => {
                 >
                   <ZoomIn size={18} />
                 </button>
-
                 <button
                   className="bg-white p-2 border border-t-0 rounded-b-lg hover:bg-gray-100 transition"
                   onClick={handleZoomOut}
@@ -324,25 +339,23 @@ const Dashboard = () => {
                   <ZoomOut size={18} />
                 </button>
               </div>
-
               {zoom > 1 && (
                 <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
                   {Math.round(zoom * 100)}%
                 </div>
               )}
             </div>
-
             <div className="flex items-center justify-between mt-4">
               <span className="text-green-600 font-medium text-sm">
                 ✓ Clear Photo
               </span>
-
               <button className="px-3 py-2 border rounded-lg text-sm hover:bg-gray-50">
                 Retake Photo
               </button>
             </div>
           </div>
         </InfoCard>
+
         <InfoCard
           title="Payment Information"
           icon={Wallet}
@@ -356,12 +369,10 @@ const Dashboard = () => {
                 value={item.value}
               />
             ))}
-
             <div className="grid grid-cols-2 py-2 border-b">
               <span className="text-sm font-semibold text-gray-700">
                 Payment Status
               </span>
-
               <span className="text-sm text-left">
                 <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
                   Partial Paid
@@ -382,34 +393,25 @@ const Dashboard = () => {
                 <thead>
                   <tr className="bg-gray-100 text-gray-700">
                     <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">Module</th>
-
                     <th className="py-2.5 px-3 text-right text-xs font-bold border border-gray-300">Amount (₹)</th>
-
                     <th className="py-2.5 px-3 text-right text-xs font-bold border border-gray-300">Received (₹)</th>
-
                     <th className="py-2.5 px-3 text-right text-xs font-bold border border-gray-300">Pending (₹)</th>
-
                     <th className="py-2.5 px-3 text-center text-xs font-bold border border-gray-300">Status</th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {paymentModules.map((item, index) => (
                     <tr key={index} className="bg-white">
                       <td className="py-2 px-3 border border-gray-300">{item.module}</td>
-
                       <td className="py-2 px-3 text-right border border-gray-300">
                         {item.amount.toLocaleString("en-IN")}
                       </td>
-
                       <td className="py-2 px-3 text-right border border-gray-300">
                         {item.received.toLocaleString("en-IN")}
                       </td>
-
                       <td className="py-2 px-3 text-right border border-gray-300">
                         {item.pending.toLocaleString("en-IN")}
                       </td>
-
                       <td className="py-2 px-3 text-center border border-gray-300">
                         <span
                           className={`px-3 py-1 text-xs font-semibold rounded border ${
@@ -425,28 +427,23 @@ const Dashboard = () => {
                       </td>
                     </tr>
                   ))}
-
                   <tr className="font-bold bg-gray-100">
                     <td className="py-2 px-3 border border-gray-300">Total</td>
-
                     <td className="py-2 px-3 text-right border border-gray-300">
                       {paymentModules
                         .reduce((sum, item) => sum + item.amount, 0)
                         .toLocaleString("en-IN")}
                     </td>
-
                     <td className="py-2 px-3 text-right border border-gray-300">
                       {paymentModules
                         .reduce((sum, item) => sum + item.received, 0)
                         .toLocaleString("en-IN")}
                     </td>
-
                     <td className="py-2 px-3 text-right border border-gray-300">
                       {paymentModules
                         .reduce((sum, item) => sum + item.pending, 0)
                         .toLocaleString("en-IN")}
                     </td>
-
                     <td className="py-2 px-3 border border-gray-300"></td>
                   </tr>
                 </tbody>
@@ -468,7 +465,6 @@ const Dashboard = () => {
                 value={item.amount}
               />
             ))}
-
             <div className="mt-3 pt-3 border-t-2 border-gray-300">
               <DetailRow
                 label="Total Salary Cost"
@@ -511,7 +507,6 @@ const Dashboard = () => {
               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,.xlsx,.csv,.txt"
               className="hidden"
             />
-
             <button
               onClick={() => fileInputRef.current.click()}
               className="flex items-center gap-2 border border-red-500 text-red-600 rounded-lg px-3 py-1.5 text-sm font-medium mb-4 hover:bg-red-50 transition"
@@ -519,7 +514,6 @@ const Dashboard = () => {
               <Upload size={14} />
               Upload Files
             </button>
-
             <div className="space-y-2">
               {uploadedFiles.map((file, index) => (
                 <div
@@ -534,7 +528,6 @@ const Dashboard = () => {
                     ) : (
                       <Image size={18} className="text-green-500" />
                     )}
-
                     <div>
                       <p className="text-sm font-medium text-gray-700">
                         {file.name}
@@ -542,7 +535,6 @@ const Dashboard = () => {
                       <p className="text-xs text-gray-500">{file.size}</p>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleDownloadFile(file)}
@@ -550,7 +542,6 @@ const Dashboard = () => {
                     >
                       <Download size={16} className="text-red-600" />
                     </button>
-
                     <button
                       onClick={() => handleDeleteFile(index)}
                       className="p-1 hover:bg-red-100 rounded transition"
@@ -560,7 +551,6 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))}
-
               {uploadedFiles.length === 0 && (
                 <p className="text-sm text-gray-400 text-center py-3">
                   No files uploaded yet
@@ -583,24 +573,20 @@ const Dashboard = () => {
                 value={item.value}
               />
             ))}
-
             <div className="grid grid-cols-2 py-2">
               <span className="text-sm font-semibold text-gray-700">
                 Priority
               </span>
-
               <span className="text-sm text-right">
                 <span className="px-3 py-1 text-xs font-semibold rounded border bg-yellow-50 text-yellow-600 border-yellow-500">
                   High
                 </span>
               </span>
             </div>
-
             <div className="grid grid-cols-2 py-2">
               <span className="text-sm font-semibold text-gray-700">
                 Probability
               </span>
-
               <span className="text-sm text-right">
                 <span className="px-3 py-1 text-xs font-semibold rounded bg-green-500 text-white">
                   80%
@@ -623,45 +609,50 @@ const Dashboard = () => {
                 <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
                   From Date
                 </label>
-
                 <input
                   type="date"
-                  defaultValue="2025-05-01"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
                   className="border border-gray-300 rounded px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
                 />
               </div>
-
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
                   To Date
                 </label>
-
                 <input
                   type="date"
-                  defaultValue="2025-05-20"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
                   className="border border-gray-300 rounded px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
                 />
               </div>
-
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
                   Sales Executive
                 </label>
-
-                <select className="border border-gray-300 rounded px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500">
+                <select
+                  value={executiveFilter}
+                  onChange={(e) => setExecutiveFilter(e.target.value)}
+                  className="border border-gray-300 rounded px-2.5 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-500"
+                >
                   <option>All Employees</option>
-                  <option>Rahul Kumar</option>
-                  <option>Priya Singh</option>
-                  <option>Amit Sharma</option>
+                  {executives.map((ex) => (
+                    <option key={ex}>{ex}</option>
+                  ))}
                 </select>
               </div>
-
-              <button className="flex items-center gap-1.5 bg-red-600 text-white rounded px-3 py-1.5 text-sm font-medium hover:bg-red-700 transition">
+              <button
+                onClick={resetFilters}
+                className="flex items-center gap-1.5 bg-red-600 text-white rounded px-3 py-1.5 text-sm font-medium hover:bg-red-700 transition"
+              >
                 <Search size={14} />
-                Search
+                Reset
               </button>
-
-              <button className="flex items-center gap-1.5 bg-green-600 text-white rounded px-3 py-1.5 text-sm font-medium hover:bg-green-700 transition">
+              <button
+                onClick={exportCSV}
+                className="flex items-center gap-1.5 bg-green-600 text-white rounded px-3 py-1.5 text-sm font-medium hover:bg-green-700 transition"
+              >
                 <FileSpreadsheet size={14} />
                 Export Excel
               </button>
@@ -671,163 +662,73 @@ const Dashboard = () => {
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="bg-gray-100 text-gray-700">
-                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">
-                      #
-                    </th>
-
-                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">
-                      Date
-                    </th>
-
-                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">
-                      Time
-                    </th>
-
-                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">
-                      Sales Executive
-                    </th>
-
-                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">
-                      Client Name
-                    </th>
-
-                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">
-                      Contact No.
-                    </th>
-
-                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">
-                      Project Type
-                    </th>
-
-                    <th className="py-2.5 px-3 text-center text-xs font-bold border border-gray-300">
-                      Products
-                    </th>
-
-                    <th className="py-2.5 px-3 text-right text-xs font-bold border border-gray-300">
-                      Total Value (₹)
-                    </th>
-
-                    <th className="py-2.5 px-3 text-right text-xs font-bold border border-gray-300">
-                      Advance (₹)
-                    </th>
-
-                    <th className="py-2.5 px-3 text-right text-xs font-bold border border-gray-300">
-                      Pending (₹)
-                    </th>
-
-                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">
-                      Payment Type
-                    </th>
-
-                    <th className="py-2.5 px-3 text-center text-xs font-bold border border-gray-300">
-                      Status
-                    </th>
-
-                    <th className="py-2.5 px-3 text-center text-xs font-bold border border-gray-300">
-                      Location
-                    </th>
-
-                    <th className="py-2.5 px-3 text-center text-xs font-bold border border-gray-300">
-                      Photo
-                    </th>
-
-                    <th className="py-2.5 px-3 text-center text-xs font-bold border border-gray-300">
-                      Action
-                    </th>
+                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">#</th>
+                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">Date</th>
+                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">Time</th>
+                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">Sales Executive</th>
+                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">Client Name</th>
+                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">Contact No.</th>
+                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">Project Type</th>
+                    <th className="py-2.5 px-3 text-center text-xs font-bold border border-gray-300">Products</th>
+                    <th className="py-2.5 px-3 text-right text-xs font-bold border border-gray-300">Total Value (₹)</th>
+                    <th className="py-2.5 px-3 text-right text-xs font-bold border border-gray-300">Advance (₹)</th>
+                    <th className="py-2.5 px-3 text-right text-xs font-bold border border-gray-300">Pending (₹)</th>
+                    <th className="py-2.5 px-3 text-left text-xs font-bold border border-gray-300">Payment Type</th>
+                    <th className="py-2.5 px-3 text-center text-xs font-bold border border-gray-300">Status</th>
+                    <th className="py-2.5 px-3 text-center text-xs font-bold border border-gray-300">Location</th>
+                    <th className="py-2.5 px-3 text-center text-xs font-bold border border-gray-300">Photo</th>
+                    <th className="py-2.5 px-3 text-center text-xs font-bold border border-gray-300">Action</th>
                   </tr>
                 </thead>
-
                 <tbody>
-                  {reportList.map((item) => (
-                    <tr key={item.sno} className="bg-white">
-                      <td className="py-2.5 px-3 border border-gray-300">
-                        {item.sno}
-                      </td>
-
-                      <td className="py-2.5 px-3 border border-gray-300">
-                        {item.date}
-                      </td>
-
-                      <td className="py-2.5 px-3 border border-gray-300">
-                        {item.time}
-                      </td>
-
-                      <td className="py-2.5 px-3 border border-gray-300">
-                        {item.salesExecutive}
-                      </td>
-
-                      <td className="py-2.5 px-3 border border-gray-300">
-                        {item.clientName}
-                      </td>
-
-                      <td className="py-2.5 px-3 border border-gray-300">
-                        {item.contactNo}
-                      </td>
-
-                      <td className="py-2.5 px-3 border border-gray-300">
-                        {item.projectType}
-                      </td>
-
+                  {filteredReports.map((item, index) => (
+                    <tr key={item.sno} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"} hover:bg-red-50/50 transition-colors`}>
+                      <td className="py-2.5 px-3 border border-gray-300">{index + 1}</td>
+                      <td className="py-2.5 px-3 border border-gray-300">{item.date}</td>
+                      <td className="py-2.5 px-3 border border-gray-300">{item.time}</td>
+                      <td className="py-2.5 px-3 border border-gray-300">{item.salesExecutive}</td>
+                      <td className="py-2.5 px-3 border border-gray-300">{item.clientName}</td>
+                      <td className="py-2.5 px-3 border border-gray-300">{item.contactNo}</td>
+                      <td className="py-2.5 px-3 border border-gray-300">{item.projectType}</td>
+                      <td className="py-2.5 px-3 text-center border border-gray-300">{item.products}</td>
+                      <td className="py-2.5 px-3 text-right border border-gray-300">{item.totalValue}</td>
+                      <td className="py-2.5 px-3 text-right border border-gray-300">{item.advance}</td>
+                      <td className="py-2.5 px-3 text-right border border-gray-300">{item.pending}</td>
+                      <td className="py-2.5 px-3 border border-gray-300">{item.paymentType}</td>
                       <td className="py-2.5 px-3 text-center border border-gray-300">
-                        {item.products}
-                      </td>
-
-                      <td className="py-2.5 px-3 text-right border border-gray-300">
-                        {item.totalValue}
-                      </td>
-
-                      <td className="py-2.5 px-3 text-right border border-gray-300">
-                        {item.advance}
-                      </td>
-
-                      <td className="py-2.5 px-3 text-right border border-gray-300">
-                        {item.pending}
-                      </td>
-
-                      <td className="py-2.5 px-3 border border-gray-300">
-                        {item.paymentType}
-                      </td>
-
-                      <td className="py-2.5 px-3 text-center border border-gray-300">
-                        <span
-                          className={`text-sm font-bold ${
-                            item.status === "Paid"
-                              ? "text-green-600"
-                              : "text-gray-700"
-                          }`}
-                        >
+                        <span className={`text-sm font-bold ${item.status === "Paid" ? "text-green-600" : "text-gray-700"}`}>
                           {item.status}
                         </span>
                       </td>
-
                       <td className="py-2.5 px-3 text-center border border-gray-300">
-                        <MapPin
-                          size={16}
-                          className="text-red-600 mx-auto"
-                        />
+                        <MapPin size={16} className="text-red-600 mx-auto" />
                       </td>
-
                       <td className="py-2.5 px-3 text-center border border-gray-300">
-                        <Camera
-                          size={16}
-                          className="text-red-600 mx-auto"
-                        />
+                        <Camera size={16} className="text-red-600 mx-auto" />
                       </td>
-
                       <td className="py-2.5 px-3 text-center border border-gray-300">
-                        <button className="text-red-600 border border-red-600 rounded px-2.5 py-0.5 text-xs font-medium">
+                        <button
+                          onClick={() => setViewModal(item)}
+                          className="text-red-600 border border-red-600 rounded px-2.5 py-0.5 text-xs font-medium hover:bg-red-50 transition"
+                        >
                           View
                         </button>
                       </td>
                     </tr>
                   ))}
+                  {filteredReports.length === 0 && (
+                    <tr>
+                      <td colSpan={16} className="py-8 text-center text-gray-400 border border-gray-300">
+                        No reports found for selected filters
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
 
             <div className="flex items-center justify-center gap-2 mt-4 text-sm text-orange-500 font-medium">
               <ShieldCheck size={16} className="text-orange-500" />
-
               <span>
                 All reports are GPS verified with date, time & photo to ensure
                 transparency and avoid any misuse.
@@ -848,7 +749,6 @@ const Dashboard = () => {
           >
             <X size={24} />
           </button>
-
           <img
             src={officeBuilding}
             alt="Visit Photo"
@@ -856,6 +756,35 @@ const Dashboard = () => {
             onClick={(e) => e.stopPropagation()}
           />
         </div>
+      )}
+
+      {viewModal && (
+        <Modal title="Visit Report Details" onClose={() => setViewModal(null)}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              { label: "Date", value: viewModal.date },
+              { label: "Time", value: viewModal.time },
+              { label: "Sales Executive", value: viewModal.salesExecutive },
+              { label: "Client Name", value: viewModal.clientName },
+              { label: "Contact No.", value: viewModal.contactNo },
+              { label: "Project Type", value: viewModal.projectType },
+              { label: "Products", value: viewModal.products },
+              { label: "Total Value (₹)", value: viewModal.totalValue },
+              { label: "Advance (₹)", value: viewModal.advance },
+              { label: "Pending (₹)", value: viewModal.pending },
+              { label: "Payment Type", value: viewModal.paymentType },
+              { label: "Status", value: viewModal.status },
+            ].map((item) => (
+              <div key={item.label}>
+                <p className="text-xs font-medium text-gray-500 mb-1">{item.label}</p>
+                <p className="text-sm font-semibold text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">{item.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end mt-5 pt-4 border-t border-gray-200">
+            <button onClick={() => setViewModal(null)} className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Close</button>
+          </div>
+        </Modal>
       )}
     </div>
   );

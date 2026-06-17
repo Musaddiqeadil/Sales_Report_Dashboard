@@ -325,7 +325,7 @@ const AddVisit = () => {
 
             <div
               onClick={() => fileInputRef.current.click()}
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-red-400 hover:bg-red-50/50 transition"
+              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-red-200 hover:bg-red-50/50 transition"
             >
               <Upload size={28} className="mx-auto text-gray-400 mb-2" />
               <p className="text-sm font-medium text-gray-600">Click to upload or drag and drop</p>
